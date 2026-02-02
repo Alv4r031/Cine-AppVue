@@ -6,8 +6,8 @@ export const useUserStore = defineStore('user', {
     reservations: [],
   }),
   actions: {
-    login(username) {
-      this.user = { username }
+    login(user) {
+      this.user = user
       localStorage.setItem('user', JSON.stringify(this.user))
     },
     logout() {

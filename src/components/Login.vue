@@ -7,9 +7,13 @@
       </div>
       <h2>{{ isLogin ? 'Iniciar Sesión' : 'Registrarse' }}</h2>
       <form @submit.prevent="submitForm">
+        <div v-if="!isLogin" class="form-group">
+          <label for="name">Nombre</label>
+          <input id="name" v-model="name" type="text" required />
+        </div>
         <div class="form-group">
-          <label for="username">Usuario</label>
-          <input id="username" v-model="username" type="text" required />
+          <label for="email">Email</label>
+          <input id="email" v-model="email" type="email" required />
         </div>
         <div class="form-group">
           <label for="password">Contraseña</label>
@@ -22,6 +26,7 @@
 </template>
 
 <script>
+import axios from 'axios'
 import { useUserStore } from '../stores/user'
 import { useRouter } from 'vue-router'
 
@@ -29,8 +34,9 @@ export default {
   data() {
     return {
       isLogin: true,
-      username: '',
+      email: '',
       password: '',
+      name: '',
     }
   },
   setup() {
@@ -41,24 +47,30 @@ export default {
   methods: {
     setMode(login) {
       this.isLogin = login
-      this.username = ''
+      this.email = ''
       this.password = ''
+      this.name = ''
     },
-    submitForm() {
-      if (this.isLogin) {
-        // Login logic
-        const storedUser = JSON.parse(localStorage.getItem('registeredUser'))
-        if (storedUser && storedUser.username === this.username && storedUser.password === this.password) {
-          this.userStore.login(this.username)
-          this.router.push('/cartelera')
+    async submitForm() {
+      try {
+        if (this.isLogin) {
+          const response = await axios.post('http://localhost:3000/api/login', {
+            email: this.email,
+            password: this.password
+          });
+          this.userStore.login(response.data);
+          this.router.push('/cartelera');
         } else {
-          alert('Credenciales incorrectas')
+          await axios.post('http://localhost:3000/api/register', {
+            name: this.name,
+            email: this.email,
+            password: this.password
+          });
+          alert('Registro exitoso. Ahora inicia sesión.');
+          this.setMode(true);
         }
-      } else {
-        // Registration logic (fictional)
-        localStorage.setItem('registeredUser', JSON.stringify({ username: this.username, password: this.password }))
-        alert('Registro exitoso. Ahora inicia sesión.')
-        this.setMode(true)
+      } catch (error) {
+        alert(error.response?.data?.error || 'Error');
       }
     },
   },
@@ -76,19 +88,22 @@ export default {
 }
 
 .login-form {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(22, 33, 62, 0.9);
   padding: 40px;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  border-radius: 15px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
   width: 100%;
-  max-width: 400px;
-  backdrop-filter: blur(10px);
+  max-width: 420px;
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(201, 169, 97, 0.3);
 }
 
 .login-form h2 {
   text-align: center;
   margin-bottom: 30px;
-  color: #ffd700;
+  color: #c9a961;
+  font-size: 1.8em;
+  font-weight: 600;
 }
 
 .tabs {
@@ -99,17 +114,19 @@ export default {
 
 .tabs button {
   flex: 1;
-  padding: 10px;
-  background: rgba(255, 255, 255, 0.2);
-  border: 1px solid #ffd700;
+  padding: 12px;
+  background: rgba(44, 95, 125, 0.3);
+  border: 1px solid #c9a961;
   cursor: pointer;
-  transition: background 0.3s ease;
-  color: white;
+  transition: all 0.3s ease;
+  color: #e8e8e8;
+  font-weight: 500;
 }
 
 .tabs button.active {
-  background: #ffd700;
-  color: #0f0c29;
+  background: #c9a961;
+  color: #1a1a2e;
+  font-weight: 600;
 }
 
 .tabs button:first-child {
@@ -126,18 +143,26 @@ export default {
 
 .form-group label {
   display: block;
-  margin-bottom: 5px;
-  color: #666;
+  margin-bottom: 8px;
+  color: #c9a961;
+  font-weight: 500;
 }
 
 .form-group input {
   width: 100%;
-  padding: 10px;
-  border: 1px solid #ffd700;
-  border-radius: 5px;
+  padding: 12px;
+  border: 1px solid rgba(201, 169, 97, 0.5);
+  border-radius: 8px;
   font-size: 1em;
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
+  background: rgba(15, 52, 96, 0.4);
+  color: #e8e8e8;
+  transition: all 0.3s ease;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #c9a961;
+  background: rgba(15, 52, 96, 0.6);
 }
 
 .form-group input::placeholder {
@@ -146,14 +171,22 @@ export default {
 
 .submit-button {
   width: 100%;
-  padding: 12px;
-  background: #ff4500; /* Orange Red */
+  padding: 14px;
+  background: linear-gradient(135deg, #2c5f7d 0%, #1e4460 100%);
   color: white;
   border: none;
-  border-radius: 5px;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 1em;
-  transition: background 0.3s ease;
+  font-size: 1.05em;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(44, 95, 125, 0.4);
+}
+
+.submit-button:hover {
+  background: linear-gradient(135deg, #1e4460 0%, #163650 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(44, 95, 125, 0.6);
 }
 
 .submit-button:hover {

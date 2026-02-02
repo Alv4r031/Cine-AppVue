@@ -1,4 +1,4 @@
-<template>
+git<template>
   <div class="payment-container">
     <h2>Pago para {{ movieTitle }}</h2>
     <div class="reservation-summary">
@@ -176,13 +176,13 @@ export default {
 
 .payment-form {
   margin-top: 10px;
-  padding: 20px;
+  padding: 15px;
   background: rgba(255, 255, 255, 0.1);
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
   backdrop-filter: blur(10px);
   width: 100%;
-  min-height: 150px;
+  min-height: 120px;
 }
 
 @keyframes fadeIn {
@@ -190,26 +190,35 @@ export default {
   to { opacity: 1; transform: translateY(0); }
 }
 
+.form-group {
+  margin-bottom: 15px;
+}
+
 .form-group input {
-  width: 100%;
-  padding: 10px;
+  width: 90%;
+  margin: 0 auto;
+  display: block;
+  padding: 8px;
   border: 1px solid #ffd700;
   border-radius: 5px;
-  font-size: 1em;
+  font-size: 0.9em;
   background: rgba(255, 255, 255, 0.1);
   color: white;
 }
 
 .pay-button {
-  width: 100%;
-  padding: 12px;
+  width: 90%;
+  margin: 0 auto;
+  display: block;
+  padding: 8px;
   background: #ff4500;
   color: white;
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  font-size: 1em;
+  font-size: 0.9em;
   transition: background 0.3s ease;
+  margin-bottom: 10px;
 }
 
 .pay-button:hover {
