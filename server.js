@@ -2,6 +2,8 @@ const express = require('express');
 const mysql = require('mysql2');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
+const fs = require('fs');
+const path = require('path');
 require('dotenv').config();
 
 const app = express();
@@ -16,7 +18,8 @@ const db = mysql.createConnection({
   host: process.env.DB_HOST || 'localhost',
   user: process.env.DB_USER || 'root',
   password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'cine_app'
+  database: process.env.DB_NAME || 'cine_app',
+  port: process.env.DB_PORT ? Number(process.env.DB_PORT) : 3306,
 });
 
 db.connect((err) => {
@@ -31,7 +34,40 @@ db.connect((err) => {
 app.get('/api/movies', (req, res) => {
   db.query('SELECT * FROM movies', (err, results) => {
     if (err) return res.status(500).json({ error: err.message });
-    res.json(results);
+    let trailerMap = {};
+    try {
+      const trailersPath = path.join(__dirname, 'trailers.json');
+      if (fs.existsSync(trailersPath)) {
+        const parsed = JSON.parse(fs.readFileSync(trailersPath, 'utf8')) || {};
+        if (Array.isArray(parsed)) {
+          parsed.forEach((item) => {
+            if (!item) return;
+            if (item.id) trailerMap[String(item.id)] = item.url;
+            if (item.title) trailerMap[item.title] = item.url;
+          });
+        } else if (Array.isArray(parsed.trailers)) {
+          parsed.trailers.forEach((item) => {
+            if (!item) return;
+            if (item.id) trailerMap[String(item.id)] = item.url;
+            if (item.title) trailerMap[item.title] = item.url;
+          });
+        } else {
+          trailerMap = parsed;
+        }
+      }
+    } catch (e) {
+      trailerMap = {};
+    }
+
+    const withTrailers = results.map((movie) => {
+      const trailerFromMap = trailerMap[String(movie.id)] || trailerMap[movie.title];
+      if (!movie.trailer_url && trailerFromMap) {
+        return { ...movie, trailer_url: trailerFromMap };
+      }
+      return movie;
+    });
+
+    res.json(withTrailers);
   });
 });
 

@@ -30,6 +30,19 @@
               </button>
             </div>
           </div>
+          <div v-if="trailerEmbedUrl" class="trailer">
+            <h3 class="trailer-title">🎬 Trailer</h3>
+            <div class="trailer-frame">
+              <iframe
+                :src="trailerEmbedUrl"
+                title="Trailer"
+                frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen
+              ></iframe>
+            </div>
+          </div>
+          <p v-else-if="movie" class="no-trailer">Trailer no disponible.</p>
           <button @click="next" class="next-button">Siguiente</button>
         </div>
       </div>
@@ -72,8 +85,33 @@ export default {
     movieTitle() {
       return this.movie ? this.movie.title : 'Película'
     },
+    trailerEmbedUrl() {
+      if (!this.movie) return ''
+      const rawUrl = this.movie.trailer_url || this.movie.trailer || this.movie.trailerUrl
+      if (!rawUrl) return ''
+      return this.toEmbedUrl(rawUrl)
+    },
   },
   methods: {
+    toEmbedUrl(url) {
+      if (!url) return ''
+      const trimmed = url.trim()
+      if (trimmed.includes('youtube.com/embed/')) return trimmed
+      try {
+        const parsed = new URL(trimmed)
+        if (parsed.hostname.includes('youtube.com')) {
+          const videoId = parsed.searchParams.get('v')
+          return videoId ? `https://www.youtube.com/embed/${videoId}` : trimmed
+        }
+        if (parsed.hostname === 'youtu.be') {
+          const videoId = parsed.pathname.replace('/', '')
+          return videoId ? `https://www.youtube.com/embed/${videoId}` : trimmed
+        }
+      } catch (e) {
+        return trimmed
+      }
+      return trimmed
+    },
     checkDate() {
       if (this.selectedDate > this.maxDate) {
         this.dateError = 'No hay horario para ese día.'
@@ -265,5 +303,41 @@ export default {
   color: #ff4500;
   font-size: 0.9em;
   margin-top: 5px;
+}
+
+.trailer {
+  margin: 20px 0;
+}
+
+.trailer-title {
+  margin-bottom: 10px;
+  color: #c9a961;
+  font-size: 1.2em;
+  font-weight: 600;
+}
+
+.trailer-frame {
+  position: relative;
+  width: 100%;
+  padding-top: 56.25%;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(201, 169, 97, 0.3);
+}
+
+.trailer-frame iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.no-trailer {
+  margin: 12px 0;
+  color: #ccc;
+  font-size: 0.95em;
+  text-align: center;
 }
 </style>
